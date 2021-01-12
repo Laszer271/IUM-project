@@ -114,5 +114,43 @@ class History(Resource):
 
 api.add_resource(History, '/model/history')
 
+class ABStatus(Resource):
+    # using GET to check if AB is used:
+    # curl http://localhost:5000/model/ab/status --request GET
+    def get(self):
+        # TODO get a way of obtaining modelname
+        return "placeholder"
+
+    # using POST to activate AB:
+    # curl http://localhost:5000/model/ab/status --header "Content-Type: application/json" --request POST --data '{"status": True}'
+    def post(self):
+        json_data = request.json
+        # TODO some bool value to change
+        return "AB status successfully changed.", 201
+        # TODO otherwise
+        return "Failed to change AB status.", 400
+
+api.add_resource(ABStatus, '/model/ab/status')
+
+class AB(Resource):
+    # using GET to check models used in AB:
+    # curl http://localhost:5000/model/ab --request GET
+    def get(self):
+        # TODO get a way of obtaining ab models in use
+        return "placeholder"
+
+    # using POST to load models for AB:
+    # curl http://localhost:5000/model/ab --header "Content-Type: application/json" --request POST --data '{"model_a": 'path1', "model_b": 'path2'}'
+    def post(self):
+        json_data = request.json
+        # TODO if files exist, load them
+        print(json_data['name'])
+        return "AB models succesfully loaded.", 201
+        # TODO otherwise
+        return "Failed to load AB models.", 400
+
+api.add_resource(AB, '/model/ab')
+
+
 if __name__ == '__main__':
     app.run(debug=True)

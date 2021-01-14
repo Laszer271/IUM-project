@@ -74,42 +74,63 @@ class ParametrizedModel(BaselineModel):
         return df['product_id'].sample(min(n, len(df)), weights=weights) # sample with probability according to learnt weights
     
 class ModelContainer():
-    def __init__(self, categories_mapping, models, modes, current_mode, n=5):
-        self.models  = {}
-        for mode, model in zip(modes, models):
-            self.models [mode] = model
-        self.current_mode = current_mode
+    def __init__(self, categories_mapping, n=5):
+        self.simple_model = BaselineModel()
+        self.complex_model = None
+        self.complex_path = None
+        self.selected_model = None
+
+        self.AB = False
         self.current_session = []
         self.history = []
         self.mapping = categories_mapping
         self.n_to_predict = n
         
-    def set_mode(self, mode):
-        self.current_mode = mode
+    def set_AB(self, mode):
+        self.AB = mode
+        return True
         
     def clear_session(self):
         self.current_session = []
-        self.history = {}
+        self.history = []
     
-    def load_model(self, path, model_type):
-        if self.current_mode == 'A/B':
-            for p, key in zip(path, self.models.keys()):
-                self.models[key].load(p)
-        else:
-            self.models[self.current_mode].load(path)
-    
+    # def load_model(self, path, model_type):
+    #     if model_type == "simple":
+    #         self.simple_model.load(path)
+    #     if model_type == "complex":
+    #         self.complex_model.load(path)
+
+    def load_model(self, path):
+        if self.complex_model == None:
+            self.complex_model = ParametrizedModel()
+        self.complex_model.load(path)
+        self.complex_path = path
+        return True
+
+    def select_model(self, model_type):
+        if model_type == "simple":
+            self.selected_model = self.simple_model
+        if model_type == "complex":
+            if self.complex_model == None:
+                return False
+            self.selected_model = self.complex_model
+        return True
+
     def predict(self, product_id):
-        if self.current_mode == 'A/B':
-            r = random.randint(0, len(self.models))
-            mode = self.models.keys[r]
+        if self.AB:
+            r = random.randint(0, 1)
+            if r:
+                model = self.simple_model
+            else:
+                model = self.complex_model
         else:
-            mode = self.current_mode
-        model = self.models[mode]
+            model = self.selected_model
+
         category = self.mapping[product_id]
         self.current_session.append(product_id)
         preds = model.predict(category, self.current_session, self.n_to_predict)
         self.history.append({'CurrentSession': self.current_session,
-                             'Model': mode,
+                             'Model': model.__name__(),
                              'Predictions': preds})
         
         return preds

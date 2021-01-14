@@ -1,78 +1,20 @@
 # based on https://flask-restful.readthedocs.io/en/latest/quickstart.html#a-minimal-api
 
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_restful import reqparse, abort, Api, Resource
+from models import ModelContainer
 import json
 
 app = Flask(__name__)
 api = Api(app)
 
-TODOS = {
-    'todo1': {'task': 'build an API'},
-    'todo2': {'task': '?????'},
-    'todo3': {'task': 'profit!'},
-}
-
-
-def abort_if_todo_doesnt_exist(todo_id):
-    if todo_id not in TODOS:
-        abort(404, message="Todo {} doesn't exist".format(todo_id))
-
-
-parser = reqparse.RequestParser()
-parser.add_argument('task')
-
-
-# Todo
-# shows a single todo item and lets you delete a todo item
-class Todo(Resource):
-    def get(self, todo_id):
-        abort_if_todo_doesnt_exist(todo_id)
-        return TODOS[todo_id]
-
-    def delete(self, todo_id):
-        abort_if_todo_doesnt_exist(todo_id)
-        del TODOS[todo_id]
-        return '', 204
-
-    def put(self, todo_id):
-        args = parser.parse_args()
-        task = {'task': args['task']}
-        TODOS[todo_id] = task
-        return task, 201
-
-
-# TodoList
-# shows a list of all todos, and lets you POST to add new tasks
-class TodoList(Resource):
-    def get(self):
-        return TODOS
-
-    def post(self):
-        args = parser.parse_args()
-        todo_id = int(max(TODOS.keys()).lstrip('todo')) + 1
-        todo_id = 'todo%i' % todo_id
-        TODOS[todo_id] = {'task': args['task']}
-        return TODOS[todo_id], 201
-
-
-##
-# Actually setup the Api resource routing here
-##
-api.add_resource(TodoList, '/todos')
-api.add_resource(Todo, '/todos/<todo_id>')
-
-
-#######################################################
-#######################################################
-
-# curl http://localhost:5000/model --header "Content-Type: application/json" --request GET --data '{"aaaaa": "xd"}'
+model_container = None
 
 class About(Resource):
     # using GET to read about the project:
     # curl http://localhost:5000/about --request GET
     def get(self):
-        return "IUM 20L Project. Wojciech Maciejewski, Wiktor Michalski"
+        return "IUM 20Z Project. Wojciech Maciejewski, Wiktor Michalski"
 
 api.add_resource(About, '/about')
 
@@ -80,28 +22,24 @@ class Model(Resource):
     # using GET to check the model in use:
     # curl http://localhost:5000/model --request GET
     def get(self):
-        # TODO get a way of obtaining modelname
-        return "placeholder"
+        # TODO get a way of obtaining modelname'
+        return jsonify(model_container.selected_model.__name__())
 
     # using POST to choose the model:
-    # curl http://localhost:5000/model --header "Content-Type: application/json" --request POST --data '{"name": "some_model", "path": "some_model.h5"}'
+    # curl http://localhost:5000/model --header "Content-Type: application/json" --request POST --data '{"path": "some_model.h5"}'
     def post(self):
         json_data = request.json
-        # TODO if the file exisits, load it
-        print(json_data['name'])
-        return "Model successfully loaded.", 201
-        # TODO otherwise
-        return "Failed to load a model", 400
+        model_container.load_model(json_data["path"])
 
 api.add_resource(Model, '/model')
 
 class Predict(Resource):
     # using GET to get a prediction:
-    # curl http://localhost:5000/model/predict --header "Content-Type: application/json" --request GET --data '{"last_browsed_product": "name"}'
+    # curl http://localhost:5000/model/predict --header "Content-Type: application/json" --request GET --data '{"last_browsed_product": id}'
     def get(self):
-        # TODO get prediction from a model
-        # TODO add data to the history [last_browsed_product, prediction, model_used]
-        return None
+        json_data = request.json
+        predictions = model_container.predict(json_data["last_browsed_product"])
+        return jsonify(predictions)
 
 api.add_resource(Predict, '/model/predict')
 
@@ -109,48 +47,30 @@ class History(Resource):
     # using GET to get history:
     # curl http://localhost:5000/model --request GET
     def get(self):
-        # TODO get a way of obtaining history
-        return None
+        return jsonify(model_container.history)
 
 api.add_resource(History, '/model/history')
 
-class ABStatus(Resource):
+class AB(Resource):
     # using GET to check if AB is used:
     # curl http://localhost:5000/model/ab/status --request GET
     def get(self):
-        # TODO get a way of obtaining modelname
-        return "placeholder"
+        status = model_container.AB
+        return jsonify({"AB_status": status})
 
     # using POST to activate AB:
     # curl http://localhost:5000/model/ab/status --header "Content-Type: application/json" --request POST --data '{"status": True}'
     def post(self):
         json_data = request.json
-        # TODO some bool value to change
-        return "AB status successfully changed.", 201
-        # TODO otherwise
+        if model_container.complex_model == None:
+            return "Failed to change AB status, complex model not loaded.", 400
+        if type(json_data["status"]) == type(True):
+            model_container.AB = json_data["status"]
+            return "AB status successfully set.", 201
         return "Failed to change AB status.", 400
-
-api.add_resource(ABStatus, '/model/ab/status')
-
-class AB(Resource):
-    # using GET to check models used in AB:
-    # curl http://localhost:5000/model/ab --request GET
-    def get(self):
-        # TODO get a way of obtaining ab models in use
-        return "placeholder"
-
-    # using POST to load models for AB:
-    # curl http://localhost:5000/model/ab --header "Content-Type: application/json" --request POST --data '{"model_a": 'path1', "model_b": 'path2'}'
-    def post(self):
-        json_data = request.json
-        # TODO if files exist, load them
-        print(json_data['name'])
-        return "AB models succesfully loaded.", 201
-        # TODO otherwise
-        return "Failed to load AB models.", 400
 
 api.add_resource(AB, '/model/ab')
 
-
 if __name__ == '__main__':
+    container = ModelContainer()
     app.run(debug=True)

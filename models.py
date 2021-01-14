@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import pandas as pd
-import matplotlib.pyplot as plt
+import random
 
 class Model(ABC):
     @abstractmethod
@@ -53,8 +53,6 @@ class ParametrizedModel(BaselineModel):
         for category in self.categories:
             df_temp = df.loc[df['category_path'] == category]
             weights = df_temp.groupby('product_id')['product_id'].count()
-            weights.plot(kind='bar')
-            plt.show()
             weights = weights / weights.sum()
             weights_list.append(weights)
         weights = pd.concat(weights_list)
@@ -74,3 +72,48 @@ class ParametrizedModel(BaselineModel):
         df = df.loc[not_viewed_mask] # products viewed in session do not repeat
         weights = weights[not_viewed_mask]
         return df['product_id'].sample(min(n, len(df)), weights=weights) # sample with probability according to learnt weights
+    
+class ModelContainer():
+    def __init__(self, categories_mapping, models, modes, current_mode, n=5):
+        self.models  = {}
+        for mode, model in zip(modes, models):
+            self.models [mode] = model
+        self.current_mode = current_mode
+        self.current_session = []
+        self.history = []
+        self.mapping = categories_mapping
+        self.n_to_predict = n
+        
+    def set_mode(self, mode):
+        self.current_mode = mode
+        
+    def clear_session(self):
+        self.current_session = []
+        self.history = {}
+    
+    def load_model(self, path, model_type):
+        if self.current_mode == 'A/B':
+            for p, key in zip(path, self.models.keys()):
+                self.models[key].load(p)
+        else:
+            self.models[self.current_mode].load(path)
+    
+    def predict(self, product_id):
+        if self.current_mode == 'A/B':
+            r = random.randint(0, len(self.models))
+            mode = self.models.keys[r]
+        else:
+            mode = self.current_mode
+        model = self.models[mode]
+        category = self.mapping[product_id]
+        self.current_session.append(product_id)
+        preds = model.predict(category, self.current_session, self.n_to_predict)
+        self.history.append({'CurrentSession': self.current_session,
+                             'Model': mode,
+                             'Predictions': preds})
+        
+        return preds
+        
+        
+    
+    

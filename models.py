@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import pandas as pd
-import numpy as np
+import matplotlib.pyplot as plt
 
 class Model(ABC):
     @abstractmethod
@@ -21,24 +21,26 @@ class BaselineModel(Model):
         pass
     
     def fit(self, df):
-        combinations = pd.DataFrame({'category': df['category_path'],
+        products = pd.DataFrame({'category': df['category_path'],
                                      'product_id': df['product_id']})
-        combinations = combinations.drop_duplicates()
-        self.possible_combinations = combinations.reset_index(drop=True)
+        products = products.drop_duplicates()
+        self.products = products
+        self.categories = products['category'].unique()
         return self
     
     def save(self, path):
-        self.possible_combinations.to_csv(path, index=False)
+        self.products.to_csv(path, index=False)
         
     def load(self, path):
-        self.possible_combinations = pd.read_csv(path)
+        self.products = pd.read_csv(path)
+        self.categories = self.products['category'].unique()
         
     def predict(self, category, products_in_session, n):
-        if not self.possible_combinations['category'].str.contains(category).any():
+        if category not in self.categories:
             raise ValueError('There was no such category in training set')
-        df = self.possible_combinations
+        df = self.products
         df = df.loc[df['category'] == category] # only the products from given category are considered
-        df = df.drop(df['product_id'].isin(products_in_session)) # products viewed in session do not repeat
+        df = df.loc[~df['product_id'].isin(products_in_session)] # products viewed in session do not repeat
         return df['product_id'].sample(min(n, len(df))) # sample with uniform probability without
     
 class ParametrizedModel(BaselineModel):
@@ -47,18 +49,28 @@ class ParametrizedModel(BaselineModel):
     
     def fit(self, df):
         super().fit(df)
-        weights = df.groupby('product_id')['product_id'].count().reset_index(drop=True)
-        for category in self.possible_combinations['category']:
-            mask = self.possible_combinations['category'] == category
-            masked_weights = weights.loc[mask]
-            weights.loc[mask] = masked_weights / masked_weights.sum()
-        self.possible_combinations['weight'] = weights
+        weights_list = []
+        for category in self.categories:
+            df_temp = df.loc[df['category_path'] == category]
+            weights = df_temp.groupby('product_id')['product_id'].count()
+            weights.plot(kind='bar')
+            plt.show()
+            weights = weights / weights.sum()
+            weights_list.append(weights)
+        weights = pd.concat(weights_list)
+        weights = pd.DataFrame({'weight': weights}, index=weights.index)
+        self.products = self.products.join(weights, on='product_id')
         return self
         
     def predict(self, category, products_in_session, n):
-        if not self.possible_combinations['category'].str.contains(category).any():
+        if category not in self.categories:
             raise ValueError('There was no such category in training set')
-        df = self.possible_combinations
-        df = df.loc[df['category'] == category] # only the products from given category are considered
-        df = df.drop(df['product_id'].isin(products_in_session)) # products viewed in session do not repeat
-        return df['products'].sample(min(n, len(df)), df['weight']) # sample with probability according to learnt weights
+        df = self.products
+        weights = df['weight']
+        category_mask = df['category'] == category # only the products from given category are considered
+        df = df.loc[category_mask] 
+        weights = weights[category_mask]
+        not_viewed_mask = ~df['product_id'].isin(products_in_session)
+        df = df.loc[not_viewed_mask] # products viewed in session do not repeat
+        weights = weights[not_viewed_mask]
+        return df['product_id'].sample(min(n, len(df)), weights=weights) # sample with probability according to learnt weights

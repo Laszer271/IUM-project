@@ -35,5 +35,5 @@ if __name__ == '__main__':
     df_test = df_viewed[df_viewed['session_id'] == session_id]
     products = df_test['product_id']
     category = df_test['category_path'].iloc[0]
-    baseline_preds = baseline.predict(products[:-1], category, 5)
-    better_model_preds = better_model.predict(products[:-1], category, 5)
+    baseline_preds = baseline.predict(category, products[:-1], 5)
+    better_model_preds = better_model.predict(category, products[:-1], 5)

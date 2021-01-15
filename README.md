@@ -22,9 +22,6 @@ Uruchomienie skryptu testowego (wymagane uruchomione api do działania):
 ### api.py
 Api we Flasku, umożliwiające wybieranie i ładowanie modeli, uzyskanie predykcji, przeprowadzenie eksperymentu A/B oraz pobranie historii sesji.
 
-### train.py
-Moduł wykorzystany do uzyskania wag dla modelu docelowego.
-
 ### models.py
 Moduł zawierający oba rodzaje modeli (prosty i docelowy) oraz "kontener". Kontener przechowuje modele i wykonuje na nich operacje na podstawie żądań z API.
 

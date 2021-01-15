@@ -14,7 +14,7 @@ class About(Resource):
     # using GET to read about the project:
     # curl http://localhost:5000/about --request GET
     def get(self):
-        return "IUM 20Z Project. Wojciech Maciejewski, Wiktor Michalski"
+        return jsonify({"info": "IUM 20Z Project. Wojciech Maciejewski, Wiktor Michalski"})
 
 api.add_resource(About, '/about')
 

@@ -74,7 +74,7 @@ class ParametrizedModel(BaselineModel):
         return df['product_id'].sample(min(n, len(df)), weights=weights) # sample with probability according to learnt weights
     
 class ModelContainer():
-    def __init__(self, categories_mapping, n=5):
+    def __init__(self, df, n=5):
         self.simple_model = BaselineModel()
         self.complex_model = None
         self.complex_path = None
@@ -83,7 +83,11 @@ class ModelContainer():
         self.AB = False
         self.current_session = []
         self.history = []
-        self.mapping = categories_mapping
+        df = df[['product_id', 'category_path']]
+        mapping = {}
+        for i, row in df.iterrows():
+            mapping[row['product_id']] = row['category_path']
+        self.mapping = mapping
         self.n_to_predict = n
         
     def set_AB(self, mode):

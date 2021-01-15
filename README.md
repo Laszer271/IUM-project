@@ -36,9 +36,9 @@ Sprawdzenie aktywnego modelu.
 #### POST
 ```curl http://localhost:5000/model --header "Content-Type: application/json" --request POST --data '{"type": "complex", "path": "parametrized_model.csv"}'```
 Umożliwia wybranie modelu ("simple" lub "complex") i wag do niego. 
-    {
-        "info": "Request successfully sent"
-    }
+{
+    "info": "Request successfully sent"
+}
 
 ### /model/predict
 #### GET

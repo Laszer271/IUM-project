@@ -31,7 +31,7 @@ class Model(ABC):
     
 class BaselineModel(Model):
     def __init__(self):
-        self.name = "baseline"
+        self.name = "simple"
         pass
     
     def fit(self, df):
@@ -59,7 +59,7 @@ class BaselineModel(Model):
     
 class ParametrizedModel(BaselineModel):
     def __init__(self):
-        self.name = "parametrized"
+        self.name = "complex"
         pass
     
     def fit(self, df):

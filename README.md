@@ -144,3 +144,10 @@ Uruchomienie lub wyłączenie eksperymentu A/B (tylko jeśli model docelowy jest
 
 ## AB
 W ramach eksperymentu A/B, do predykcji używany jest losowo model prosty lub załadowany model skomplikowany. Do poprawnego przeprowadzenia eksperymentu każda nowa sesja powinna mieć losowany jeden z modeli, który byłby konsekwentnie używany przez całość trwania sesji - ale dla uproszczenia prezentacji (i w związku z tym, że oba modele są do siebie zbliżone koncepcyjnie), przyjmiemy uproszczenie, że każde zapytanie zwraca odpowiedź na podstawie losowego modelu.
+
+## Notebooki
+### model_comparison.ipynb 
+Porównanie modelu prostego i docelowego.
+
+### EDA.ipynb
+Analiza danych na podstawie pierwszego etapu, ale z zaktualizowaną ścieżką do nowych danych i kilkoma nowymi wykresami.

@@ -29,21 +29,26 @@ Informacje o autorach :)
 #### GET
 ```curl http://localhost:5000/model --request GET```
 Sprawdzenie aktywnego modelu.
- ```   {
-    "model_name": "baseline"
-    }```
+```
+ {
+    "model_name": "simple"
+ }
+```
 
 #### POST
 ```curl http://localhost:5000/model --header "Content-Type: application/json" --request POST --data '{"type": "complex", "path": "parametrized_model.csv"}'```
 Umożliwia wybranie modelu ("simple" lub "complex") i wag do niego. 
+```
     {
         "info": "Request successfully sent"
     }
+```
 
 ### /model/predict
 #### GET
     curl http://localhost:5000/model/predict --header "Content-Type: application/json" --request GET --data '{"last_browsed_product": 1279}'
 Przewidywanie produktów na podstawie ostatnio przejrzanego.
+```
     [
     1011, 
     1130, 
@@ -51,17 +56,19 @@ Przewidywanie produktów na podstawie ostatnio przejrzanego.
     1008, 
     1022
     ]
+```
 
 ### /model/history
 #### GET
 ```curl http://localhost:5000/model --request GET```
 Pobranie historii sesji.
+```
     [
     {
         "CurrentSession": [
         1279
         ], 
-        "Model": "baseline", 
+        "Model": "simple", 
         "Predictions": [
         1012, 
         1009, 
@@ -75,20 +82,23 @@ Pobranie historii sesji.
         1279, 
         1278
         ], 
-        "Model": "baseline", 
+        "Model": "simple", 
         "Predictions": [
         1281
         ]
     }
     ]
+```
 
 ### /model/ab
 #### GET
 ```curl http://localhost:5000/model/ab --request GET```
 Sprawdzenie, czy eksperyment A/B jest uruchomiony.
+```
     {
     "AB_status": false
     }
+```
 
 #### POST
 ```curl http://localhost:5000/model/ab --header "Content-Type: application/json" --request POST --data '{"status": true}'```

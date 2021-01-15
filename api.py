@@ -28,8 +28,11 @@ class Model(Resource):
     # curl http://localhost:5000/model --header "Content-Type: application/json" --request POST --data '{"type": "complex", "path": "some_model.h5"}'
     def post(self):
         json_data = request.json
+        if json_data["type"] not in ["simple", "complex"]:
+            return {"info": "Wrong model type selected"}, 400
         model_container.load_model(json_data["path"])
         model_container.select_model(json_data["type"])
+        return {"info": "Request successfully sent"}, 200
 
 api.add_resource(Model, '/model')
 

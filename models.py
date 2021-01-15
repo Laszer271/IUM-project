@@ -1,6 +1,19 @@
 from abc import ABC, abstractmethod
 import pandas as pd
 import random
+import re
+import ast
+
+def read_data(path):
+    with open(path, 'r') as f:
+        lines = f.readlines() 
+        
+    json_formatted = '['
+    for line in lines:
+        json_formatted += line + ','
+    json_formatted = json_formatted[:-1] + ']' 
+    json_formatted = re.sub('null', 'None', json_formatted)
+    return ast.literal_eval(json_formatted)
 
 class Model(ABC):
     @abstractmethod
@@ -18,6 +31,7 @@ class Model(ABC):
     
 class BaselineModel(Model):
     def __init__(self):
+        self.name = "baseline"
         pass
     
     def fit(self, df):
@@ -45,6 +59,7 @@ class BaselineModel(Model):
     
 class ParametrizedModel(BaselineModel):
     def __init__(self):
+        self.name = "parametrized"
         pass
     
     def fit(self, df):
@@ -74,16 +89,20 @@ class ParametrizedModel(BaselineModel):
         return df['product_id'].sample(min(n, len(df)), weights=weights) # sample with probability according to learnt weights
     
 class ModelContainer():
-    def __init__(self, df, n=5):
+    def __init__(self, n=5):
         self.simple_model = BaselineModel()
         self.complex_model = None
         self.complex_path = None
-        self.selected_model = None
+        self.selected_model = self.simple_model
 
         self.AB = False
         self.current_session = []
         self.history = []
-        df = df[['product_id', 'category_path']]
+        df = pd.DataFrame(read_data('data/products.jsonl'))
+
+        self.simple_model.fit(df)
+
+        df = df[['product_id', 'category_path']].drop_duplicates()
         mapping = {}
         for i, row in df.iterrows():
             mapping[row['product_id']] = row['category_path']
@@ -133,9 +152,9 @@ class ModelContainer():
         category = self.mapping[product_id]
         self.current_session.append(product_id)
         preds = model.predict(category, self.current_session, self.n_to_predict)
-        self.history.append({'CurrentSession': self.current_session,
-                             'Model': model.__name__(),
-                             'Predictions': preds})
+        self.history.append({'CurrentSession': self.current_session.copy(),
+                             'Model': model.name,
+                             'Predictions': list(preds)})
         
         return preds
         

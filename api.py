@@ -22,14 +22,14 @@ class Model(Resource):
     # using GET to check the model in use:
     # curl http://localhost:5000/model --request GET
     def get(self):
-        # TODO get a way of obtaining modelname'
-        return jsonify(model_container.selected_model.__name__())
+        return jsonify({"model_name": model_container.selected_model.name})
 
     # using POST to choose the model:
-    # curl http://localhost:5000/model --header "Content-Type: application/json" --request POST --data '{"path": "some_model.h5"}'
+    # curl http://localhost:5000/model --header "Content-Type: application/json" --request POST --data '{"type": "complex", "path": "some_model.h5"}'
     def post(self):
         json_data = request.json
         model_container.load_model(json_data["path"])
+        model_container.select_model(json_data["type"])
 
 api.add_resource(Model, '/model')
 
@@ -39,13 +39,13 @@ class Predict(Resource):
     def get(self):
         json_data = request.json
         predictions = model_container.predict(json_data["last_browsed_product"])
-        return jsonify(predictions)
+        return jsonify(list(predictions))
 
 api.add_resource(Predict, '/model/predict')
 
 class History(Resource):
     # using GET to get history:
-    # curl http://localhost:5000/model --request GET
+    # curl http://localhost:5000/model/history --request GET
     def get(self):
         return jsonify(model_container.history)
 
@@ -53,24 +53,24 @@ api.add_resource(History, '/model/history')
 
 class AB(Resource):
     # using GET to check if AB is used:
-    # curl http://localhost:5000/model/ab/status --request GET
+    # curl http://localhost:5000/model/ab --request GET
     def get(self):
         status = model_container.AB
         return jsonify({"AB_status": status})
 
     # using POST to activate AB:
-    # curl http://localhost:5000/model/ab/status --header "Content-Type: application/json" --request POST --data '{"status": True}'
+    # curl http://localhost:5000/model/ab --header "Content-Type: application/json" --request POST --data '{"status": True}'
     def post(self):
         json_data = request.json
         if model_container.complex_model == None:
-            return "Failed to change AB status, complex model not loaded.", 400
+            return {"info": "Failed to change AB status, complex model not loaded."}, 400
         if type(json_data["status"]) == type(True):
             model_container.AB = json_data["status"]
-            return "AB status successfully set.", 201
-        return "Failed to change AB status.", 400
+            return {"info": "AB status successfully set."}, 200
+        return {"info": "Failed to change AB status."}, 400
 
 api.add_resource(AB, '/model/ab')
 
 if __name__ == '__main__':
-    container = ModelContainer()
+    model_container = ModelContainer()
     app.run(debug=True)

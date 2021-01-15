@@ -83,7 +83,7 @@ class ModelContainer():
         self.AB = False
         self.current_session = []
         self.history = []
-        df = df[['product_id', 'category_path']]
+        df = df[['product_id', 'category_path']].drop_duplicates()
         mapping = {}
         for i, row in df.iterrows():
             mapping[row['product_id']] = row['category_path']

@@ -5,7 +5,18 @@ Są osoby, które wchodzą na naszą stronę i nie mogą się zdecydować który
 
 Wiktor Michalski, Wojciech Maciejewski
 
-===
+## Uruchomienie
+
+Uruchomienie samego api:
+```
+python3 api.py
+```
+
+Uruchomienie skryptu testowego (wymagane uruchomione api do działania):
+```
+./run.sh
+```
+
 ## Moduły
 
 ### api.py
@@ -40,6 +51,12 @@ Sprawdzenie aktywnego modelu.
     "model_name": "simple"
  }
 ```
+```
+{
+  "model_name": "complex", 
+  "path": "parametrized_model.csv"
+}
+```
 
 #### POST
 ```
@@ -71,7 +88,7 @@ Przewidywanie produktów na podstawie ostatnio przejrzanego.
 ### /model/history
 #### GET
 ```
-curl http://localhost:5000/model --request GET
+curl http://localhost:5000/model/history --request GET
 ```
 Pobranie historii sesji.
 ```

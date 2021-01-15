@@ -24,6 +24,8 @@ class Model(Resource):
     def get(self):
         if model_container.selected_model.name == "simple":
             return jsonify({"model_name": model_container.selected_model.name})
+        else:
+            return jsonify({"model_name": model_container.selected_model.name, "path": model_container.complex_path})
         
 
     # using POST to choose the model:

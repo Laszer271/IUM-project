@@ -29,9 +29,9 @@ Informacje o autorach :)
 #### GET
 ```curl http://localhost:5000/model --request GET```
 Sprawdzenie aktywnego modelu.
-    {
+ ```   {
     "model_name": "baseline"
-    }
+    }```
 
 #### POST
 ```curl http://localhost:5000/model --header "Content-Type: application/json" --request POST --data '{"type": "complex", "path": "parametrized_model.csv"}'```

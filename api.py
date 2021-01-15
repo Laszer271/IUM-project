@@ -22,7 +22,9 @@ class Model(Resource):
     # using GET to check the model in use:
     # curl http://localhost:5000/model --request GET
     def get(self):
-        return jsonify({"model_name": model_container.selected_model.name})
+        if model_container.selected_model.name == "simple":
+            return jsonify({"model_name": model_container.selected_model.name})
+        
 
     # using POST to choose the model:
     # curl http://localhost:5000/model --header "Content-Type: application/json" --request POST --data '{"type": "complex", "path": "some_model.h5"}'
